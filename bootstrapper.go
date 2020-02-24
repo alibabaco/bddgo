@@ -11,17 +11,23 @@ import (
 func ParseRequest(r io.Reader) error {
 	buf := bufio.NewReader(r)
 
-	req, err := http.ReadRequest(buf)
+	for {
+		req, err := http.ReadRequest(buf)
 
-	if err != nil {
-		return err
-	}
+		if err == io.EOF {
+			break
+		}
 
-	if contentLengthStr := req.Header.Get("Content-Length"); contentLengthStr != "" {
-		b := new(bytes.Buffer)
-		io.Copy(b, req.Body)
-		req.Body.Close()
-		req.Body = ioutil.NopCloser(b)
+		if err != nil {
+			return err
+		}
+
+		if contentLengthStr := req.Header.Get("Content-Length"); contentLengthStr != "" {
+			b := new(bytes.Buffer)
+			io.Copy(b, req.Body)
+			req.Body.Close()
+			req.Body = ioutil.NopCloser(b)
+		}
 	}
 
 	return nil
