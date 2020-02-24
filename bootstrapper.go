@@ -13,11 +13,9 @@ func ParseRequest(r io.Reader) error {
 
 	for {
 		req, err := http.ReadRequest(buf)
-
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return err
 		}
@@ -29,6 +27,5 @@ func ParseRequest(r io.Reader) error {
 			req.Body = ioutil.NopCloser(b)
 		}
 	}
-
 	return nil
 }

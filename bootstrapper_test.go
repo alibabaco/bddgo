@@ -67,7 +67,6 @@ func TestMain(m *testing.M) {
 func TestCorrectRequest(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestCorrectRequest")
 	err := ParseRequest(strings.NewReader(httpRequest.text))
-
 	if err != nil {
 		t.Errorf("error while parsing http request : %q", err)
 	}
@@ -76,7 +75,6 @@ func TestCorrectRequest(t *testing.T) {
 func TestWrongHeaders(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestWrongHeaders")
 	err := ParseRequest(strings.NewReader(httpRequest.text))
-
 	if err == nil {
 		t.Errorf("expected `malformed MIME header line` but the request was parsed incorrectly!")
 	}
@@ -85,7 +83,6 @@ func TestWrongHeaders(t *testing.T) {
 func TestWrongEOF(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestWrongEOF")
 	err := ParseRequest(strings.NewReader(httpRequest.text))
-
 	if err == nil {
 		t.Errorf("expected `unexpected EOF` but the request was parsed incorrectly!")
 	}
@@ -94,7 +91,6 @@ func TestWrongEOF(t *testing.T) {
 func TestCorrectMultiRequests(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestCorrectMultiRequests")
 	err := ParseRequest(strings.NewReader(httpRequest.text))
-
 	if err != nil {
 		t.Errorf("error whlie parsing three consecutive http requets : %q", err)
 	}
@@ -103,7 +99,6 @@ func TestCorrectMultiRequests(t *testing.T) {
 func TestWrongMultiRequests(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestWrongMultiRequests")
 	err := ParseRequest(strings.NewReader(httpRequest.text))
-
 	if err == nil {
 		t.Errorf("expected `unexpected EOF` but the requets where parsed incorrectly")
 	}
