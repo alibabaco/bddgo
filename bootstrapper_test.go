@@ -18,7 +18,7 @@ func TestSimpleRequest(t *testing.T) {
 	writer := httptest.NewRecorder()
 	reader := strings.NewReader("GET / HTTP/1.1\r\n\r\n")
 
-	err := ParseRequest(reader, writer, handler)
+	err := ServeFromReader(reader, writer, handler)
 	if err != nil {
 		t.Errorf("error while parsing http request : %q", err)
 	}

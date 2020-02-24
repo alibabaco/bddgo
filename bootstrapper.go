@@ -6,31 +6,43 @@ import (
 	"net/http"
 )
 
-func ParseRequest(
+func ServeSingleRequest(
+	reader *bufio.Reader,
+	writer http.ResponseWriter,
+	handler http.Handler) error {
+
+	req, err := http.ReadRequest(reader)
+	if err != nil {
+		return err
+	}
+
+	//		contentLengthStr := req.Header.Get("Content-Length")
+	//		if contentLengthStr != "" {
+	//			b := new(bytes.Buffer)
+	//			io.Copy(b, req.Body)
+	//			req.Body.Close()
+	//			req.Body = ioutil.NopCloser(b)
+	//		}
+
+	handler.ServeHTTP(writer, req)
+	return nil
+}
+
+func ServeFromReader(
 	reader io.Reader,
-	w http.ResponseWriter,
+	writer http.ResponseWriter,
 	handler http.Handler) error {
 
 	buf := bufio.NewReader(reader)
 
 	for {
-		req, err := http.ReadRequest(buf)
+		err := ServeSingleRequest(buf, writer, handler)
 		if err == io.EOF {
 			break
-		}
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
-
-		//		contentLengthStr := req.Header.Get("Content-Length")
-		//		if contentLengthStr != "" {
-		//			b := new(bytes.Buffer)
-		//			io.Copy(b, req.Body)
-		//			req.Body.Close()
-		//			req.Body = ioutil.NopCloser(b)
-		//		}
-
-		handler.ServeHTTP(w, req)
 	}
+
 	return nil
 }
