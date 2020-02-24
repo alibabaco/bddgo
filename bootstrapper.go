@@ -2,14 +2,18 @@ package bddgo
 
 import (
 	"bufio"
-	"bytes"
+	//"bytes"
 	"io"
-	"io/ioutil"
+	//"io/ioutil"
 	"net/http"
 )
 
-func ParseRequest(r io.Reader, w http.ResponseWriter, mux *http.ServeMux) error {
-	buf := bufio.NewReader(r)
+func ParseRequest(
+	reader io.Reader,
+	w http.ResponseWriter,
+	mux *http.ServeMux) error {
+
+	buf := bufio.NewReader(reader)
 
 	for {
 		req, err := http.ReadRequest(buf)
@@ -20,12 +24,13 @@ func ParseRequest(r io.Reader, w http.ResponseWriter, mux *http.ServeMux) error 
 			return err
 		}
 
-		if contentLengthStr := req.Header.Get("Content-Length"); contentLengthStr != "" {
-			b := new(bytes.Buffer)
-			io.Copy(b, req.Body)
-			req.Body.Close()
-			req.Body = ioutil.NopCloser(b)
-		}
+		//		contentLengthStr := req.Header.Get("Content-Length")
+		//		if contentLengthStr != "" {
+		//			b := new(bytes.Buffer)
+		//			io.Copy(b, req.Body)
+		//			req.Body.Close()
+		//			req.Body = ioutil.NopCloser(b)
+		//		}
 
 		mux.ServeHTTP(w, req)
 	}
