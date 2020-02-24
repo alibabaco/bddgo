@@ -1,6 +1,9 @@
 package bddgo
 
 import (
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -12,6 +15,9 @@ type request struct {
 }
 
 var requests []request
+var responseWriter *httptest.ResponseRecorder
+var handler func(w http.ResponseWriter, r *http.Request)
+var mux *http.ServeMux
 
 func setup() {
 	requests = append(requests, request{`POST /test HTTP/1.1
@@ -48,6 +54,14 @@ Content-Length: 27
 field1=value1&field2=value2GET /api/v1/helloworld HTTP/1.2
 `, "TestWrongMultiRequests"})
 
+	responseWriter = httptest.NewRecorder()
+
+	handler = func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "<html><body>Hello World!</body></html>")
+	}
+
+	mux = http.NewServeMux()
+	mux.HandleFunc("/", handler)
 }
 
 func filterRequestsByName(requests []request, testName string) request {
@@ -66,7 +80,7 @@ func TestMain(m *testing.M) {
 
 func TestCorrectRequest(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestCorrectRequest")
-	err := ParseRequest(strings.NewReader(httpRequest.text))
+	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
 	if err != nil {
 		t.Errorf("error while parsing http request : %q", err)
 	}
@@ -74,7 +88,8 @@ func TestCorrectRequest(t *testing.T) {
 
 func TestWrongHeaders(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestWrongHeaders")
-	err := ParseRequest(strings.NewReader(httpRequest.text))
+
+	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
 	if err == nil {
 		t.Errorf("expected `malformed MIME header line` but the request was parsed incorrectly!")
 	}
@@ -82,7 +97,7 @@ func TestWrongHeaders(t *testing.T) {
 
 func TestWrongEOF(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestWrongEOF")
-	err := ParseRequest(strings.NewReader(httpRequest.text))
+	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
 	if err == nil {
 		t.Errorf("expected `unexpected EOF` but the request was parsed incorrectly!")
 	}
@@ -90,7 +105,7 @@ func TestWrongEOF(t *testing.T) {
 
 func TestCorrectMultiRequests(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestCorrectMultiRequests")
-	err := ParseRequest(strings.NewReader(httpRequest.text))
+	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
 	if err != nil {
 		t.Errorf("error whlie parsing three consecutive http requets : %q", err)
 	}
@@ -98,8 +113,23 @@ func TestCorrectMultiRequests(t *testing.T) {
 
 func TestWrongMultiRequests(t *testing.T) {
 	httpRequest := filterRequestsByName(requests, "TestWrongMultiRequests")
-	err := ParseRequest(strings.NewReader(httpRequest.text))
+	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
 	if err == nil {
 		t.Errorf("expected `unexpected EOF` but the requets where parsed incorrectly")
+	}
+}
+
+func TestResponseBody(t *testing.T) {
+	httpRequest := filterRequestsByName(requests, "TestCorrectRequest")
+	responseWriter = httptest.NewRecorder()
+	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
+	if err != nil {
+		t.Errorf("error while parsing http request : %q", err)
+	}
+
+	body := responseWriter.Body.String()
+	expectedBody := "<html><body>Hello World!</body></html>"
+	if strings.TrimSpace(body) != expectedBody {
+		t.Errorf("expected response body : %q but recieved %q", expectedBody, body)
 	}
 }
