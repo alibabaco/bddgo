@@ -1,18 +1,36 @@
 package bddgo
 
 import (
+	"github.com/stretchr/testify/assert"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 )
 
-type request struct {
-	text     string
-	testName string
+func TestSimpleRequest(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "Hello")
+	})
+
+	writer := httptest.NewRecorder()
+	reader := strings.NewReader("GET / HTTP/1.1\r\n\r\n")
+
+	err := ParseRequest(reader, writer, handler)
+	if err != nil {
+		t.Errorf("error while parsing http request : %q", err)
+	}
+
+	response := writer.Result()
+	body, _ := ioutil.ReadAll(response.Body)
+
+	assert.Equal(t, string(body), "Hello")
 }
+
+/*
+
 
 var requests []request
 var responseWriter *httptest.ResponseRecorder
@@ -20,11 +38,7 @@ var handler func(w http.ResponseWriter, r *http.Request)
 var mux *http.ServeMux
 
 func setup() {
-	requests = append(requests, request{`POST /test HTTP/1.1
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 27
-
-field1=value1&field2=value2`, "TestCorrectRequest"})
+	requests = append(requests, request{, "TestCorrectRequest"})
 
 	requests = append(requests, request{`POST /test HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
@@ -54,12 +68,7 @@ Content-Length: 27
 field1=value1&field2=value2GET /api/v1/helloworld HTTP/1.2
 `, "TestWrongMultiRequests"})
 
-	responseWriter = httptest.NewRecorder()
-
-	handler = func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "<html><body>Hello World!</body></html>")
-	}
-
+	handler =
 	mux = http.NewServeMux()
 	mux.HandleFunc("/", handler)
 }
@@ -76,14 +85,6 @@ func filterRequestsByName(requests []request, testName string) request {
 func TestMain(m *testing.M) {
 	setup()
 	os.Exit(m.Run())
-}
-
-func TestCorrectRequest(t *testing.T) {
-	httpRequest := filterRequestsByName(requests, "TestCorrectRequest")
-	err := ParseRequest(strings.NewReader(httpRequest.text), responseWriter, mux)
-	if err != nil {
-		t.Errorf("error while parsing http request : %q", err)
-	}
 }
 
 func TestWrongHeaders(t *testing.T) {
@@ -133,3 +134,4 @@ func TestResponseBody(t *testing.T) {
 		t.Errorf("expected response body : %q but recieved %q", expectedBody, body)
 	}
 }
+*/

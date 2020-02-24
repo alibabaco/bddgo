@@ -2,16 +2,14 @@ package bddgo
 
 import (
 	"bufio"
-	//"bytes"
 	"io"
-	//"io/ioutil"
 	"net/http"
 )
 
 func ParseRequest(
 	reader io.Reader,
 	w http.ResponseWriter,
-	mux *http.ServeMux) error {
+	handler http.Handler) error {
 
 	buf := bufio.NewReader(reader)
 
@@ -32,7 +30,7 @@ func ParseRequest(
 		//			req.Body = ioutil.NopCloser(b)
 		//		}
 
-		mux.ServeHTTP(w, req)
+		handler.ServeHTTP(w, req)
 	}
 	return nil
 }
