@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func ParseRequest(r io.Reader) error {
+func ParseRequest(r io.Reader, w http.ResponseWriter, mux *http.ServeMux) error {
 	buf := bufio.NewReader(r)
 
 	for {
@@ -26,6 +26,8 @@ func ParseRequest(r io.Reader) error {
 			req.Body.Close()
 			req.Body = ioutil.NopCloser(b)
 		}
+
+		mux.ServeHTTP(w, req)
 	}
 	return nil
 }
