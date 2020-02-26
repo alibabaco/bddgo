@@ -2,6 +2,7 @@ package bddgo
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -33,6 +34,24 @@ func TestSimpleRequest(t *testing.T) {
 
 	body := sendRequest(t, handler, "GET / HTTP/1.1\r\n\r\n")
 	assert.Equal(t, body, "Hello")
+}
+
+func TestPost(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		fmt.Fprintf(w, "%s %s", r.FormValue("foo"), r.FormValue("baz"))
+	})
+
+	body := sendRequest(t, handler, `POST / HTTP/1.1
+Host: localhost:8090
+User-Agent: curl/7.58.0
+Accept: */*
+Content-Length: 15
+Content-Type: application/x-www-form-urlencoded
+
+foo=bar&baz=qux`)
+
+	assert.Equal(t, "bar qux", body)
 }
 
 /*
