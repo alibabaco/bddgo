@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
-	"net/http"
+	"github.com/alibabaco/bddgo"
 	"os"
 	"path/filepath"
-	"plugin"
 )
 
 func parseArguments(packageName *string, functionName *string) {
@@ -25,38 +23,6 @@ func parseArguments(packageName *string, functionName *string) {
 	}
 }
 
-func load(packageName string, functionName string) (
-	handler http.Handler,
-	err error,
-) {
-
-	p, err := plugin.Open(fmt.Sprintf("%s.so", packageName))
-	if err != nil {
-		return
-	}
-
-	sym, err := p.Lookup(functionName)
-	if err != nil {
-		return
-	}
-
-	handler = sym.(func() http.Handler)()
-	return
-}
-
-func serveHandler(handler http.Handler) (err error) {
-	server := http.Server{
-		Handler: handler,
-	}
-
-	unixListener, err := net.Listen("unix", ".bddgo.s")
-	if err != nil {
-		return
-	}
-	server.Serve(unixListener)
-	return
-}
-
 func main() {
 	packageName := "."
 	var functionName string
@@ -68,12 +34,12 @@ func main() {
 	}
 	packageName = filepath.Base(packageName)
 
-	handler, err := load(packageName, functionName)
+	handler, err := bddgo.LoadPackageBinary(packageName, functionName)
 	if err != nil {
 		panic(err)
 	}
 
-	err = serveHandler(handler)
+	err = bddgo.ServeHandler(handler, fmt.Sprintf(".%s.s", packageName))
 	if err != nil {
 		panic(err)
 	}
