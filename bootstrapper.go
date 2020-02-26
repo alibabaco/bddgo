@@ -2,7 +2,6 @@ package bddgo
 
 import (
 	"bufio"
-	"io"
 	"net/http"
 )
 
@@ -25,24 +24,5 @@ func ServeSingleRequest(
 	//		}
 
 	handler.ServeHTTP(writer, req)
-	return nil
-}
-
-func ServeFromReader(
-	reader io.Reader,
-	writer http.ResponseWriter,
-	handler http.Handler) error {
-
-	buf := bufio.NewReader(reader)
-
-	for {
-		err := ServeSingleRequest(buf, writer, handler)
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

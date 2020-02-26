@@ -1,6 +1,7 @@
 package bddgo
 
 import (
+	"bufio"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -10,28 +11,31 @@ import (
 	"testing"
 )
 
-func TestSimpleRequest(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Hello")
-	})
-
+func sendRequest(t *testing.T, handler http.Handler, request string) string {
 	writer := httptest.NewRecorder()
-	reader := strings.NewReader("GET / HTTP/1.1\r\n\r\n")
+	reader := strings.NewReader(request)
+	buf := bufio.NewReader(reader)
 
-	err := ServeFromReader(reader, writer, handler)
+	err := ServeSingleRequest(buf, writer, handler)
 	if err != nil {
 		t.Errorf("error while parsing http request : %q", err)
 	}
 
 	response := writer.Result()
 	body, _ := ioutil.ReadAll(response.Body)
+	return string(body)
+}
 
-	assert.Equal(t, string(body), "Hello")
+func TestSimpleRequest(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "Hello")
+	})
+
+	body := sendRequest(t, handler, "GET / HTTP/1.1\r\n\r\n")
+	assert.Equal(t, body, "Hello")
 }
 
 /*
-
-
 var requests []request
 var responseWriter *httptest.ResponseRecorder
 var handler func(w http.ResponseWriter, r *http.Request)
