@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func ServeCommand(arguments []string) {
+func ServeCommand(arguments []string) error {
 	packageName := "."
 	var functionName string
 
@@ -33,17 +33,18 @@ func ServeCommand(arguments []string) {
 
 	packageName, err := filepath.Abs(packageName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	packageName = filepath.Base(packageName)
 
 	handler, err := bddgo.LoadPackageBinary(packageName, functionName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = bddgo.ServeHandler(handler, fmt.Sprintf(".%s.s", packageName))
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }

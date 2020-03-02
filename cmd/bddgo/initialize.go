@@ -8,7 +8,7 @@ import (
 	"os/exec"
 )
 
-func InitializeCommand(arguments []string) {
+func InitializeCommand(arguments []string) error {
 	defaultPython, err := exec.LookPath("python3")
 	if err != nil {
 		panic("Cannot retrieve default python3 interpreter")
@@ -24,6 +24,12 @@ func InitializeCommand(arguments []string) {
 		defaultPython,
 		"Python interpreter to use",
 	)
+	recreate := initCommand.Bool(
+		"r",
+		false,
+		"Recreate the environment if exists",
+	)
+
 	initCommand.Parse(arguments)
 	initCommand.Usage = func() {
 		fmt.Fprintf(
@@ -36,9 +42,20 @@ func InitializeCommand(arguments []string) {
 	}
 
 	//fmt.Printf("%s, %s", *chdir, *python)
-	venv := pyvenv.New(chdir, python)
+	venv := bddgo.VirtualEnv(*chdir, *python)
 	if venv.Exists() {
-		fmt.Printf("Python virtualenv is already exists: %s\n", venv.path)
+		if *recreate {
+			fmt.Printf("Deleting %s\n", venv.Path)
+			venv.Delete()
+		} else {
+			return fmt.Errorf("Python virtualenv is already exists: %s\n", venv.Path)
+		}
 	}
 
+	err = venv.Create()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

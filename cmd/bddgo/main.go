@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Command func([]string)
+type Command func([]string) error
 
 func parseArguments() (command Command, err error) {
 	flag.Usage = func() {
@@ -46,5 +46,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	command(os.Args[2:])
+	err = command(os.Args[2:])
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
