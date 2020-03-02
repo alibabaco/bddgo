@@ -11,7 +11,7 @@ import (
 func InitializeCommand(arguments []string) error {
 	defaultPython, err := exec.LookPath("python3")
 	if err != nil {
-		panic("Cannot retrieve default python3 interpreter")
+		return err
 	}
 	initCommand := flag.NewFlagSet("init", flag.ExitOnError)
 	chdir := initCommand.String(
@@ -41,15 +41,13 @@ func InitializeCommand(arguments []string) error {
 		flag.PrintDefaults()
 	}
 
-	//fmt.Printf("%s, %s", *chdir, *python)
 	venv := bddgo.VirtualEnv(*chdir, *python)
 	if venv.Exists() {
-		if *recreate {
-			fmt.Printf("Deleting %s\n", venv.Path)
-			venv.Delete()
-		} else {
+		if !(*recreate) {
 			return fmt.Errorf("Python virtualenv is already exists: %s\n", venv.Path)
 		}
+		fmt.Printf("Deleting %s\n", venv.Path)
+		venv.Delete()
 	}
 
 	err = venv.Create()

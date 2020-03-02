@@ -1,6 +1,7 @@
 package bddgo
 
 import (
+	"fmt"
 	"os"
 	"path"
 )
@@ -29,9 +30,9 @@ func (this *VEnv) Exists() bool {
 }
 
 func (this *VEnv) Create() error {
-	return nil
+	return fmt.Errorf("Not implemented")
 }
 
 func (this *VEnv) Delete() error {
-	return nil
+	return fmt.Errorf("Not implemented")
 }
