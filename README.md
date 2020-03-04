@@ -7,6 +7,7 @@ Test your go web application using
 ## Install
 
 ```bash
+sudo apt install python3-venv
 go get -U github.com/alibabaco/bddgo
 ```
 
