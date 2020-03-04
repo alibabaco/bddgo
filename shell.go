@@ -3,15 +3,22 @@ package bddgo
 import (
 	"fmt"
 	"os/exec"
-	"strings"
 )
 
-func shell(format string, a ...interface{}) error {
-	commandString := fmt.Sprintf(format, a...)
-	parts := strings.Split(commandString, " ")
-	//var arguments [len(a) - 1]string
-	//copy(arguments[:], parts[1:])
-	cmd := exec.Command(parts[0], parts[1:]...)
-	fmt.Println(cmd)
+func execute(executable string, arguments ...string) error {
+	cmd := exec.Command(executable, arguments...)
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	exitStatus := cmd.ProcessState.ExitCode()
+	if exitStatus != 0 {
+		return fmt.Errorf(
+			"Command %s is failed with exit code: %s\n",
+			executable,
+			exitStatus,
+		)
+	}
 	return nil
 }
