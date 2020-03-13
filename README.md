@@ -7,7 +7,7 @@ Test your go web application using
 ## Install
 
 ```bash
-go get -U github.com/alibabaco/bddgo
+go get -u github.com/alibabaco/bddgo
 ```
 
 
